@@ -1,0 +1,28 @@
+{
+  "name": "nearbytes-engine",
+  "version": "0.1.0",
+  "description": "Shared NearBytes core engine — runtime, sync, config, file & chat operations reused by the CLI (terminal shell) and the desktop app (UI shell).",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "exports": { ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" } },
+  "scripts": {
+    "prepare": "tsc",
+    "prepack": "tsc",
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "license": "MIT",
+  "engines": { "node": ">=18.0.0" },
+  "dependencies": {
+    "nearbytes-chat": "github:nearbytes/nearbytes-chat",
+    "nearbytes-crypto": "github:nearbytes/nearbytes-crypto",
+    "nearbytes-files": "github:nearbytes/nearbytes-files",
+    "nearbytes-log": "github:nearbytes/nearbytes-log",
+    "nearbytes-skeleton": "github:nearbytes/nearbytes-skeleton",
+    "nearbytes-sync": "github:nearbytes/nearbytes-sync"
+  },
+  "devDependencies": { "@types/node": "^20.10.0", "typescript": "^5.3.2" },
+  "packageManager": "yarn@4.15.0"
+}
