@@ -31,7 +31,7 @@
     "nearbytes-files": "github:nearbytes/nearbytes-files",
     "nearbytes-log": "github:nearbytes/nearbytes-log",
     "nearbytes-skeleton": "github:nearbytes/nearbytes-skeleton",
-    "nearbytes-sync": "github:nearbytes/nearbytes-sync"
+    "nearbytes-sync": "github:nearbytes/nearbytes-sync#3634a043b4755d632ff24aff75d389d314a3eb32"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
