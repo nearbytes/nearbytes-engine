@@ -2,3 +2,8 @@ node_modules
 dist
 .DS_Store
 *.tsbuildinfo
+
+.yarn/*
+!.yarn/releases
+!.yarn/patches
+!.yarn/plugins
