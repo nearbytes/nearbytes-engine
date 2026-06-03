@@ -30,7 +30,8 @@ import {
 } from 'nearbytes-chat';
 import { EventType, createSecret, bytesToHex, type AppRecordPayload } from 'nearbytes-crypto';
 import { createSignedEvent } from 'nearbytes-log';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import {
   type EngineRuntime,
   createEngineRuntime,
@@ -99,6 +100,21 @@ export class NearbytesEngine {
 
   private constructor(private readonly rt: EngineRuntime) {}
 
+  private uiStatePath(): string {
+    return join(this.rt.config.dataDir, '.nearbytes', 'ui-state.json');
+  }
+  private async readUiState(): Promise<{ activeHub?: string }> {
+    try { return JSON.parse(await readFile(this.uiStatePath(), 'utf8')) as { activeHub?: string }; }
+    catch { return {}; }
+  }
+  private async writeUiState(patch: { activeHub: string | null }): Promise<void> {
+    try {
+      await mkdir(join(this.rt.config.dataDir, '.nearbytes'), { recursive: true });
+      const prev = await this.readUiState();
+      await writeFile(this.uiStatePath(), JSON.stringify({ ...prev, ...patch }), 'utf8');
+    } catch { /* best-effort */ }
+  }
+
   static async boot(): Promise<NearbytesEngine> {
     const config = await readConfig().catch(() => emptyConfig(defaultDataDir()));
     const rt = await createEngineRuntime(config);
@@ -107,6 +123,11 @@ export class NearbytesEngine {
       engine.emit({ kind: 'status', status: engine.status() });
       void engine.refreshActive();
     });
+    // Restore last-used hub so files + chat are live immediately on restart.
+    const { activeHub } = await engine.readUiState();
+    if (activeHub && config.volumes.some((v) => v.label === activeHub)) {
+      await engine.hubUse(activeHub).catch(() => { /* ignore stale entry */ });
+    }
     return engine;
   }
 
@@ -268,13 +289,17 @@ export class NearbytesEngine {
     const secret = this.hubSecret(label);
     this.config = { ...this.config, volumes: this.config.volumes.filter((v) => v.label !== label) };
     if (secret !== null) await closeVolume(this.rt, secret);
-    if (this.activeHub === label) this.activeHub = null;
+    if (this.activeHub === label) {
+      this.activeHub = null;
+      void this.writeUiState({ activeHub: null });
+    }
     await writeConfig(this.config);
   }
   async hubUse(label: string): Promise<VolumeView> {
     const secret = this.hubSecret(label);
     if (secret === null) throw new Error(`Unknown hub ${label}`);
     this.activeHub = label;
+    void this.writeUiState({ activeHub: label });
     await openAndWatch(this.rt, secret);
     this.emit({ kind: 'status', status: this.status() });
     const [view, items] = await Promise.all([this.viewOf(secret), this.chatOf(secret)]);
