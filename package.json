@@ -15,10 +15,12 @@
     }
   },
   "scripts": {
+    "refresh": "node scripts/refresh.mjs",
     "prepare": "tsc",
     "prepack": "tsc",
     "build": "tsc",
-    "dev": "tsc --watch --preserveWatchOutput",
+    "dev": "node scripts/refresh.mjs && tsc --watch --preserveWatchOutput",
+    "dev:fast": "tsc --watch --preserveWatchOutput",
     "type-check": "tsc --noEmit"
   },
   "license": "MIT",
@@ -31,7 +33,7 @@
     "nearbytes-files": "github:nearbytes/nearbytes-files",
     "nearbytes-log": "github:nearbytes/nearbytes-log",
     "nearbytes-skeleton": "github:nearbytes/nearbytes-skeleton",
-    "nearbytes-sync": "github:nearbytes/nearbytes-sync#3634a043b4755d632ff24aff75d389d314a3eb32"
+    "nearbytes-sync": "github:nearbytes/nearbytes-sync"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
