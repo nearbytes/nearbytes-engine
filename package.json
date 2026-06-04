@@ -19,7 +19,7 @@
     "prepare": "tsc",
     "prepack": "tsc",
     "build": "tsc",
-    "dev": "node scripts/refresh.mjs && tsc --watch --preserveWatchOutput",
+    "dev": "node scripts/dev-bootstrap.mjs && tsc --watch --preserveWatchOutput",
     "dev:fast": "tsc --watch --preserveWatchOutput",
     "type-check": "tsc --noEmit"
   },
