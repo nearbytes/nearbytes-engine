@@ -7,6 +7,7 @@
  * shells (nearbytes-cli, nearbytes-app). Both shells MUST reuse this.
  */
 import {
+  attachSyncInboundRefresh as attachFilesSyncInboundRefresh,
   createFileService,
   createReactiveVolume,
   type FileReplayContext,
@@ -135,26 +136,30 @@ export async function closeVolume(rt: EngineRuntime, secret: string): Promise<vo
 }
 
 /**
- * When this process owns the sync engine, reload open volumes after inbound
- * peer writes so file/chat views reflect synced data without manual refresh.
- * Writer-only processes (an nbsync daemon holds the lock) skip this.
- * Mirrors context.ts `attachSyncInboundRefresh` (reload-all variant).
+ * When this process owns the sync engine, refresh open volumes after inbound
+ * peer writes (channel-scoped; incremental via FileService when possible).
+ * Delegates to nearbytes-files `attachSyncInboundRefresh`.
  */
 export function attachSyncInboundRefresh(
   rt: EngineRuntime,
   onAfterRefresh?: () => void,
 ): () => void {
-  const writerOnly = (rt.skeleton.sync as { daemon?: unknown }).daemon !== undefined;
-  if (writerOnly) return () => {};
-
-  return rt.skeleton.sync.onEvent((event) => {
-    if (event.kind === 'block-received' || event.kind === 'event-received') {
-      void (async () => {
-        for (const secret of rt.secretsByKey.values()) {
-          await reloadVolumeFromDisk(rt, secret);
+  return attachFilesSyncInboundRefresh(
+    {
+      config: rt.config,
+      skeleton: rt.skeleton,
+      fileService: rt.fileService,
+      volumes: rt.volumes,
+      openVolumeSecrets(): Iterable<string> {
+        return rt.secretsByKey.values();
+      },
+      onVolumeRefreshed(secret: string): void {
+        rt.lastTimelineEvents = null;
+        for (const hook of rt.volumeRefreshHooks) {
+          hook(secret);
         }
-        onAfterRefresh?.();
-      })();
-    }
-  });
+      },
+    },
+    { onAfterRefresh },
+  );
 }
