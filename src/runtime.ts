@@ -35,6 +35,8 @@ export interface EngineRuntime {
   readonly secretsByKey: Map<string, string>;
   /** Cleared on any reload so timeline projections recompute lazily. */
   lastTimelineEvents: TimelineEvent[] | null;
+  /** Called after {@link reloadVolumeFromDisk} completes for a volume secret. */
+  readonly volumeRefreshHooks: Set<(secret: string) => void>;
   destroy(): Promise<void>;
 }
 
@@ -54,6 +56,7 @@ export async function createEngineRuntime(config: NearbytesConfig): Promise<Engi
     watchers,
     secretsByKey,
     lastTimelineEvents: null,
+    volumeRefreshHooks: new Set(),
     async destroy(): Promise<void> {
       for (const w of watchers.values()) w.close();
       watchers.clear();
@@ -82,6 +85,9 @@ export async function reloadVolumeFromDisk(
   const replay = await rt.fileService.getReplayContext(secret);
   const keyHex = await keyHexOf(rt, secret);
   rt.volumes.get(keyHex)?.applyMaterialized(replay.fs);
+  for (const hook of rt.volumeRefreshHooks) {
+    hook(secret);
+  }
   return replay;
 }
 
