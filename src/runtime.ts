@@ -15,6 +15,7 @@ import {
   type ReactiveVolume,
   type TimelineEvent,
 } from 'nearbytes-files';
+import { createChatService, type ChatService } from 'nearbytes-chat';
 import {
   createFilesystemSkeletonFromConfig,
   createFilesystemWatcher,
@@ -24,12 +25,14 @@ import {
 } from 'nearbytes-skeleton';
 import { join } from 'node:path';
 import { createSecret, bytesToHex } from 'nearbytes-crypto';
-import { defaultPathMapper } from 'nearbytes-log';
+import { defaultPathMapper, createSqliteMaterializedStore, type MaterializedStore } from 'nearbytes-log';
 
 export interface EngineRuntime {
   config: NearbytesConfig;
   readonly skeleton: NearbytesSkeleton;
   readonly fileService: FileService;
+  /** Engine-backed chat (persisted projection per hub; no full reloads). */
+  readonly chatService: ChatService;
   readonly volumes: Map<string, ReactiveVolume>;
   readonly watchers: Map<string, VolumeWatcher>;
   /** keyHex → channel secret, populated by openAndWatch (drives refresh). */
@@ -44,7 +47,13 @@ export interface EngineRuntime {
 /** Boots the shared runtime: skeleton log + sync, file service, empty caches. */
 export async function createEngineRuntime(config: NearbytesConfig): Promise<EngineRuntime> {
   const skeleton = await createFilesystemSkeletonFromConfig(config);
-  const fileService = createFileService({ log: skeleton.log, crypto: skeleton.crypto });
+  // Derived materialized state persists under dataDir/.nearbytes/ (deletable;
+  // rebuilt by full re-materialization). See storage/projection-engine-v1.md.
+  const nbDir = join(config.dataDir, '.nearbytes');
+  const filesStore: MaterializedStore = createSqliteMaterializedStore(join(nbDir, 'files.sqlite3'));
+  const chatStore: MaterializedStore = createSqliteMaterializedStore(join(nbDir, 'chat.sqlite3'));
+  const fileService = createFileService({ log: skeleton.log, crypto: skeleton.crypto, store: filesStore });
+  const chatService = createChatService({ log: skeleton.log, crypto: skeleton.crypto, store: chatStore });
   const volumes = new Map<string, ReactiveVolume>();
   const watchers = new Map<string, VolumeWatcher>();
   const secretsByKey = new Map<string, string>();
@@ -53,6 +62,7 @@ export async function createEngineRuntime(config: NearbytesConfig): Promise<Engi
     config,
     skeleton,
     fileService,
+    chatService,
     volumes,
     watchers,
     secretsByKey,
@@ -61,6 +71,9 @@ export async function createEngineRuntime(config: NearbytesConfig): Promise<Engi
     async destroy(): Promise<void> {
       for (const w of watchers.values()) w.close();
       watchers.clear();
+      chatService.stop();
+      filesStore.close?.();
+      chatStore.close?.();
       await skeleton.destroy();
     },
   };

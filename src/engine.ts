@@ -20,8 +20,6 @@ import type {
   TimelineEvent,
 } from 'nearbytes-files';
 import {
-  publishChatMessage,
-  readChatTimeline,
   IDENTITY_RECORD_PROTOCOL,
   createIdentityRecord,
   serializeIdentityRecord,
@@ -164,7 +162,8 @@ export class NearbytesEngine {
     return { files, directories };
   }
   private async chatOf(secret: string): Promise<ChatTimelineItem[]> {
-    return readChatTimeline({ log: this.rt.skeleton.log, crypto: this.rt.skeleton.crypto }, secret);
+    // Warm, persisted projection — no full channel reload (chat-v1 §5).
+    return this.rt.chatService.timeline(secret);
   }
   private async refreshActive(): Promise<void> {
     const secret = this.hubSecret(this.activeHub);
@@ -401,7 +400,7 @@ export class NearbytesEngine {
     const secret = this.requireHub();
     const text = body.trim();
     if (text.length === 0) return;
-    await publishChatMessage({ log: this.rt.skeleton.log, crypto: this.rt.skeleton.crypto }, secret, text);
+    await this.rt.chatService.publish(secret, text);
     if (this.activeHub !== null) this.emit({ kind: 'chat', hub: this.activeHub, items: await this.chatOf(secret) });
   }
 }
