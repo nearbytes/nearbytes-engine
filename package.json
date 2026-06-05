@@ -28,16 +28,24 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "nearbytes-chat": "github:nearbytes/nearbytes-chat",
-    "nearbytes-crypto": "github:nearbytes/nearbytes-crypto",
-    "nearbytes-files": "github:nearbytes/nearbytes-files",
-    "nearbytes-log": "github:nearbytes/nearbytes-log",
-    "nearbytes-skeleton": "github:nearbytes/nearbytes-skeleton",
-    "nearbytes-sync": "github:nearbytes/nearbytes-sync"
+    "nearbytes-chat": "portal:../nearbytes-chat",
+    "nearbytes-crypto": "portal:../nearbytes-crypto",
+    "nearbytes-files": "portal:../nearbytes-files",
+    "nearbytes-log": "portal:../nearbytes-log",
+    "nearbytes-skeleton": "portal:../nearbytes-skeleton",
+    "nearbytes-sync": "portal:../nearbytes-sync"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "typescript": "^5.3.2"
   },
-  "packageManager": "yarn@4.15.0"
+  "packageManager": "yarn@4.15.0",
+  "resolutions": {
+    "nearbytes-crypto": "portal:../nearbytes-crypto",
+    "nearbytes-log": "portal:../nearbytes-log",
+    "nearbytes-sync": "portal:../nearbytes-sync",
+    "nearbytes-skeleton": "portal:../nearbytes-skeleton",
+    "nearbytes-chat": "portal:../nearbytes-chat",
+    "nearbytes-files": "portal:../nearbytes-files"
+  }
 }
