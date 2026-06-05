@@ -30,8 +30,8 @@
   "dependencies": {
     "nearbytes-chat": "github:nearbytes/nearbytes-chat",
     "nearbytes-crypto": "github:nearbytes/nearbytes-crypto",
-    "nearbytes-files": "https://github.com/nearbytes/nearbytes-files.git#commit=29c7def6488f0366fab1e0fbe17bc697a97e5400",
-    "nearbytes-log": "https://github.com/nearbytes/nearbytes-log.git#commit=f95575fdb7f5ce5e383870d3a6977a8a7820c567",
+    "nearbytes-files": "https://github.com/nearbytes/nearbytes-files.git#commit=00f04ba023bae4faf500614816ffcaf6f503a886",
+    "nearbytes-log": "https://github.com/nearbytes/nearbytes-log.git#commit=0a1bef159ead34b542d20af74b8473e2232a90e2",
     "nearbytes-skeleton": "github:nearbytes/nearbytes-skeleton",
     "nearbytes-sync": "github:nearbytes/nearbytes-sync"
   },
