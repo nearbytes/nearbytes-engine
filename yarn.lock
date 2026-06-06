@@ -531,23 +531,23 @@ __metadata:
     "@types/node": "npm:^20.10.0"
     nearbytes-chat: "https://github.com/nearbytes/nearbytes-chat.git#commit=6892ff741b7af37796b529d04cbb00fe2064f3d3"
     nearbytes-crypto: "github:nearbytes/nearbytes-crypto"
-    nearbytes-files: "https://github.com/nearbytes/nearbytes-files.git#commit=fa758132c3d4e7f16d9a57c81c2ad7fd92e77d55"
+    nearbytes-files: "https://github.com/nearbytes/nearbytes-files.git#commit=dd6ba642bdf2154adece77f780bd6bcf12c23f14"
     nearbytes-log: "https://github.com/nearbytes/nearbytes-log.git#commit=0a1bef159ead34b542d20af74b8473e2232a90e2"
-    nearbytes-skeleton: "https://github.com/nearbytes/nearbytes-skeleton.git#commit=657091b2f1ec729bedba45eb5429a9e7616d92d5"
-    nearbytes-sync: "https://github.com/nearbytes/nearbytes-sync.git#commit=327f3d1f4b657c21b4a880d3fbe2889ec4119985"
+    nearbytes-skeleton: "https://github.com/nearbytes/nearbytes-skeleton.git#commit=fa5d953986e96ad8dbc12bbfe9b4bd7dc00f0421"
+    nearbytes-sync: "https://github.com/nearbytes/nearbytes-sync.git#commit=763fdbb4fbd844cb815efd1ee90c2f268288e946"
     typescript: "npm:^5.3.2"
   languageName: unknown
   linkType: soft
 
-"nearbytes-files@https://github.com/nearbytes/nearbytes-files.git#commit=fa758132c3d4e7f16d9a57c81c2ad7fd92e77d55":
+"nearbytes-files@https://github.com/nearbytes/nearbytes-files.git#commit=dd6ba642bdf2154adece77f780bd6bcf12c23f14":
   version: 0.1.0
-  resolution: "nearbytes-files@https://github.com/nearbytes/nearbytes-files.git#commit=fa758132c3d4e7f16d9a57c81c2ad7fd92e77d55"
+  resolution: "nearbytes-files@https://github.com/nearbytes/nearbytes-files.git#commit=dd6ba642bdf2154adece77f780bd6bcf12c23f14"
   dependencies:
     nearbytes-chat: "https://github.com/nearbytes/nearbytes-chat.git#commit=6892ff741b7af37796b529d04cbb00fe2064f3d3"
     nearbytes-crypto: "github:nearbytes/nearbytes-crypto"
     nearbytes-log: "https://github.com/nearbytes/nearbytes-log.git#commit=0a1bef159ead34b542d20af74b8473e2232a90e2"
-    nearbytes-skeleton: "https://github.com/nearbytes/nearbytes-skeleton.git#commit=657091b2f1ec729bedba45eb5429a9e7616d92d5"
-  checksum: 10c0/60306f2e454d321bd7819bd4d86c86bc08450027b72ef5e3859439e43bce0291241b5e75314ae6f420b3db545fdfac1c2c1fde786ae0ac4d9373dfad1dd6b916
+    nearbytes-skeleton: "https://github.com/nearbytes/nearbytes-skeleton.git#commit=fa5d953986e96ad8dbc12bbfe9b4bd7dc00f0421"
+  checksum: 10c0/8d277d0eed39c782df0ddbf84f1de98601f7eb641094bb44bc0de58b74dac4758e9ab4ef4cdefe69084f2925468a12209dd477e2463ef6723b5b09768a5952ff
   languageName: node
   linkType: hard
 
@@ -560,20 +560,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nearbytes-skeleton@https://github.com/nearbytes/nearbytes-skeleton.git#commit=657091b2f1ec729bedba45eb5429a9e7616d92d5":
+"nearbytes-skeleton@https://github.com/nearbytes/nearbytes-skeleton.git#commit=fa5d953986e96ad8dbc12bbfe9b4bd7dc00f0421":
   version: 0.1.0
-  resolution: "nearbytes-skeleton@https://github.com/nearbytes/nearbytes-skeleton.git#commit=657091b2f1ec729bedba45eb5429a9e7616d92d5"
+  resolution: "nearbytes-skeleton@https://github.com/nearbytes/nearbytes-skeleton.git#commit=fa5d953986e96ad8dbc12bbfe9b4bd7dc00f0421"
   dependencies:
     nearbytes-crypto: "github:nearbytes/nearbytes-crypto"
     nearbytes-log: "https://github.com/nearbytes/nearbytes-log.git#commit=0a1bef159ead34b542d20af74b8473e2232a90e2"
-    nearbytes-sync: "https://github.com/nearbytes/nearbytes-sync.git#commit=327f3d1f4b657c21b4a880d3fbe2889ec4119985"
-  checksum: 10c0/64c8d0b3a13164af5f89692947fbf8f8c22f102ea80addc65df661925ae82ba7cf9a2e7d673d8eee80ce6069dfdfd3bd409f1d8b77e89fe320bfb81f4a5deee0
+    nearbytes-sync: "https://github.com/nearbytes/nearbytes-sync.git#commit=763fdbb4fbd844cb815efd1ee90c2f268288e946"
+  checksum: 10c0/040237ac27a209135fbd001ebb904aad166e48e7cf66db24844992837d4696756136d5d3d0d06663b49b99e9cf666efc28758276474596f1b4e97805f8dd476a
   languageName: node
   linkType: hard
 
-"nearbytes-sync@https://github.com/nearbytes/nearbytes-sync.git#commit=327f3d1f4b657c21b4a880d3fbe2889ec4119985":
+"nearbytes-sync@https://github.com/nearbytes/nearbytes-sync.git#commit=763fdbb4fbd844cb815efd1ee90c2f268288e946":
   version: 0.1.0
-  resolution: "nearbytes-sync@https://github.com/nearbytes/nearbytes-sync.git#commit=327f3d1f4b657c21b4a880d3fbe2889ec4119985"
+  resolution: "nearbytes-sync@https://github.com/nearbytes/nearbytes-sync.git#commit=763fdbb4fbd844cb815efd1ee90c2f268288e946"
   dependencies:
     bonjour-service: "npm:^1.2.1"
     chokidar: "npm:^4.0.3"
@@ -582,7 +582,7 @@ __metadata:
     nearbytes-log: "https://github.com/nearbytes/nearbytes-log.git#commit=0a1bef159ead34b542d20af74b8473e2232a90e2"
   bin:
     nbsync: ./bin/nbsync.mjs
-  checksum: 10c0/de2783121b44ff4bcca7340f53f63ff12ed50492313612eb02cfd92f8e6d4aa005b75ed78281f8e51756160ef04db84a5f46f51df471de9821310c204cf2e286
+  checksum: 10c0/2a6d727fd3e4ae91c90ae54e9f3292093d00154ce7e9dfa96d1d8954583b1c32a85ac3a79d6e8a53b3396ecba3a654a8c1b401ee3ab9cfdf8c0e5ad781076338
   languageName: node
   linkType: hard
 

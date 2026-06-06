@@ -30,10 +30,10 @@
   "dependencies": {
     "nearbytes-chat": "https://github.com/nearbytes/nearbytes-chat.git#commit=6892ff741b7af37796b529d04cbb00fe2064f3d3",
     "nearbytes-crypto": "github:nearbytes/nearbytes-crypto",
-    "nearbytes-files": "https://github.com/nearbytes/nearbytes-files.git#commit=fa758132c3d4e7f16d9a57c81c2ad7fd92e77d55",
+    "nearbytes-files": "https://github.com/nearbytes/nearbytes-files.git#commit=dd6ba642bdf2154adece77f780bd6bcf12c23f14",
     "nearbytes-log": "https://github.com/nearbytes/nearbytes-log.git#commit=0a1bef159ead34b542d20af74b8473e2232a90e2",
-    "nearbytes-skeleton": "https://github.com/nearbytes/nearbytes-skeleton.git#commit=657091b2f1ec729bedba45eb5429a9e7616d92d5",
-    "nearbytes-sync": "https://github.com/nearbytes/nearbytes-sync.git#commit=327f3d1f4b657c21b4a880d3fbe2889ec4119985"
+    "nearbytes-skeleton": "https://github.com/nearbytes/nearbytes-skeleton.git#commit=fa5d953986e96ad8dbc12bbfe9b4bd7dc00f0421",
+    "nearbytes-sync": "https://github.com/nearbytes/nearbytes-sync.git#commit=763fdbb4fbd844cb815efd1ee90c2f268288e946"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
