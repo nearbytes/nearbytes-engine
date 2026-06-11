@@ -29,11 +29,11 @@
   },
   "dependencies": {
     "nearbytes-chat": "https://github.com/nearbytes/nearbytes-chat.git#commit=6892ff741b7af37796b529d04cbb00fe2064f3d3",
-    "nearbytes-crypto": "link:../nearbytes-crypto",
-    "nearbytes-files": "link:../nearbytes-files",
-    "nearbytes-log": "link:../nearbytes-log",
-    "nearbytes-skeleton": "link:../nearbytes-skeleton",
-    "nearbytes-sync": "link:../nearbytes-sync"
+    "nearbytes-crypto": "https://github.com/nearbytes/nearbytes-crypto.git#commit=1e4fdba874181eea145107d2693bee0d367853d8",
+    "nearbytes-files": "https://github.com/nearbytes/nearbytes-files.git#commit=ceec75a6bcf1d78e903dddc4ed9533c2c7d67c81",
+    "nearbytes-log": "https://github.com/nearbytes/nearbytes-log.git#commit=32a77dc63f63dbbda8fc74bc4b8cbca2459a3888",
+    "nearbytes-skeleton": "https://github.com/nearbytes/nearbytes-skeleton.git#commit=55678adbb3f68babfca33e8d1f01b937493d5bce",
+    "nearbytes-sync": "https://github.com/nearbytes/nearbytes-sync.git#commit=7e32951fd3374bf787c59e30e8c3144c6b8e2e69"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
