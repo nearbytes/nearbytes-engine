@@ -40,6 +40,8 @@ import {
 export interface VolumeView {
   readonly files: ReadonlyArray<FileMetadata>;
   readonly directories: ReadonlyArray<DirectoryMetadata>;
+  /** `null` = live head; non-null = read-only historical view at this event. */
+  readonly cursorHash: string | null;
 }
 export interface EngineStatus {
   readonly text: string;
@@ -95,6 +97,7 @@ function reorderKeys(items: readonly string[], keys: readonly string[]): string[
 export class NearbytesEngine {
   private readonly listeners = new Set<EngineListener>();
   private activeHub: string | null = null;
+  private timelineCursorHash: string | null = null;
 
   private constructor(private readonly rt: EngineRuntime) {}
 
@@ -154,12 +157,20 @@ export class NearbytesEngine {
     const kp = await this.rt.skeleton.crypto.deriveKeys(createSecret(secret));
     return bytesToHex(kp.publicKey);
   }
+  private assertTimelineWritesAllowed(): void {
+    if (this.timelineCursorHash !== null) {
+      throw new Error('Timeline is not at live head — return to live before changing files');
+    }
+  }
   private async viewOf(secret: string): Promise<VolumeView> {
-    const [files, directories] = await Promise.all([
-      this.rt.fileService.listFiles(secret),
-      this.rt.fileService.listDirectories(secret),
-    ]);
-    return { files, directories };
+    const opts =
+      this.timelineCursorHash !== null
+        ? { throughEventHash: this.timelineCursorHash }
+        : undefined;
+    const replay = await this.rt.fileService.getReplayContext(secret, opts);
+    const files = [...replay.fs.files.values()].sort((a, b) => a.path.localeCompare(b.path));
+    const directories = [...replay.fs.directories.values()].sort((a, b) => a.path.localeCompare(b.path));
+    return { files, directories, cursorHash: this.timelineCursorHash };
   }
   private async chatOf(secret: string): Promise<ChatTimelineItem[]> {
     // Warm, persisted projection — no full channel reload (chat-v1 §5).
@@ -290,6 +301,7 @@ export class NearbytesEngine {
     if (secret !== null) await closeVolume(this.rt, secret);
     if (this.activeHub === label) {
       this.activeHub = null;
+      this.timelineCursorHash = null;
       void this.writeUiState({ activeHub: null });
     }
     await writeConfig(this.config);
@@ -297,6 +309,7 @@ export class NearbytesEngine {
   async hubUse(label: string): Promise<VolumeView> {
     const secret = this.hubSecret(label);
     if (secret === null) throw new Error(`Unknown hub ${label}`);
+    this.timelineCursorHash = null;
     this.activeHub = label;
     void this.writeUiState({ activeHub: label });
     await openAndWatch(this.rt, secret);
@@ -352,37 +365,71 @@ export class NearbytesEngine {
     await this.persistAndReload();
   }
 
+  // ── timeline cursor (read-only historical volume view) ───────────────────
+  timelineCursor(): string | null {
+    return this.timelineCursorHash;
+  }
+  async timelineGoto(eventHash: string): Promise<VolumeView> {
+    const secret = this.requireHub();
+    const replay = await this.rt.fileService.getReplayContext(secret);
+    const replayIdx = replay.orderedEntries.findIndex((e) => e.eventHash === eventHash);
+    if (replayIdx < 0) throw new Error(`Event not in replay log: ${eventHash}`);
+    const atHead = replayIdx === replay.orderedEntries.length - 1;
+    this.timelineCursorHash = atHead ? null : eventHash;
+    const view = await this.viewOf(secret);
+    if (this.activeHub !== null) this.emit({ kind: 'volume', hub: this.activeHub, view });
+    return view;
+  }
+  async timelineLive(): Promise<VolumeView> {
+    this.timelineCursorHash = null;
+    const secret = this.hubSecret(this.activeHub);
+    const view = secret === null ? { files: [], directories: [], cursorHash: null } : await this.viewOf(secret);
+    if (this.activeHub !== null) this.emit({ kind: 'volume', hub: this.activeHub, view });
+    return view;
+  }
+
   // ── files ──────────────────────────────────────────────────────────────────
   async fileView(): Promise<VolumeView> {
     const secret = this.hubSecret(this.activeHub);
-    return secret === null ? { files: [], directories: [] } : this.viewOf(secret);
+    return secret === null ? { files: [], directories: [], cursorHash: null } : this.viewOf(secret);
   }
   async fileAdd(localPath: string, name?: string): Promise<void> {
+    this.assertTimelineWritesAllowed();
     const secret = this.requireHub();
     const data = await readFile(localPath);
     await this.rt.fileService.addFile(secret, name ?? localPath.split(/[\\/]/).pop() ?? 'file', data);
     await this.refreshActive();
   }
   async fileAddBytes(name: string, data: Buffer): Promise<void> {
+    this.assertTimelineWritesAllowed();
     const secret = this.requireHub();
     await this.rt.fileService.addFile(secret, name, data);
     await this.refreshActive();
   }
   async fileBytes(name: string): Promise<Buffer> {
-    return this.rt.fileService.getFileByPath(this.requireHub(), name);
+    const secret = this.requireHub();
+    const opts =
+      this.timelineCursorHash !== null
+        ? { throughEventHash: this.timelineCursorHash }
+        : undefined;
+    const replay = await this.rt.fileService.getReplayContext(secret, opts);
+    return this.rt.fileService.readFileAtReplay(secret, name, replay);
   }
   async fileGet(name: string, outputPath: string): Promise<void> {
     await writeFile(outputPath, await this.fileBytes(name));
   }
   async fileRemove(name: string): Promise<void> {
+    this.assertTimelineWritesAllowed();
     await this.rt.fileService.delete(this.requireHub(), name);
     await this.refreshActive();
   }
   async fileMkdir(path: string): Promise<void> {
+    this.assertTimelineWritesAllowed();
     await this.rt.fileService.mkdir(this.requireHub(), path);
     await this.refreshActive();
   }
   async fileRename(from: string, to: string): Promise<void> {
+    this.assertTimelineWritesAllowed();
     await this.rt.fileService.rename(this.requireHub(), from, to);
     await this.refreshActive();
   }
@@ -397,6 +444,7 @@ export class NearbytesEngine {
     return secret === null ? [] : this.chatOf(secret);
   }
   async chatSay(body: string): Promise<void> {
+    this.assertTimelineWritesAllowed();
     const secret = this.requireHub();
     const text = body.trim();
     if (text.length === 0) return;
