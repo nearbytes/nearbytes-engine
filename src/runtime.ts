@@ -26,6 +26,7 @@ import {
 import { join } from 'node:path';
 import { createSecret, bytesToHex } from 'nearbytes-crypto';
 import { defaultPathMapper, createSqliteMaterializedStore, type MaterializedStore } from 'nearbytes-log';
+import { createTimelineCursorMap, type TimelineCursorMap } from './timelineCursor.js';
 
 export interface EngineRuntime {
   config: NearbytesConfig;
@@ -41,6 +42,8 @@ export interface EngineRuntime {
   lastTimelineEvents: TimelineEvent[] | null;
   /** Called after {@link reloadVolumeFromDisk} completes for a volume secret. */
   readonly volumeRefreshHooks: Set<(secret: string) => void>;
+  /** Per-channel secret → inclusive timeline cursor event hash (read-only replay). */
+  readonly timelineCursors: TimelineCursorMap;
   destroy(): Promise<void>;
 }
 
@@ -68,6 +71,7 @@ export async function createEngineRuntime(config: NearbytesConfig): Promise<Engi
     secretsByKey,
     lastTimelineEvents: null,
     volumeRefreshHooks: new Set(),
+    timelineCursors: createTimelineCursorMap(),
     async destroy(): Promise<void> {
       for (const w of watchers.values()) w.close();
       watchers.clear();

@@ -20,6 +20,7 @@
     "prepack": "tsc",
     "build": "tsc",
     "dev": "node scripts/dev-bootstrap.mjs && tsc --watch --preserveWatchOutput",
+    "dev-local": "NEARBYTES_LOCAL_DEPS=1 node scripts/dev-bootstrap.mjs && tsc --watch --preserveWatchOutput",
     "dev:fast": "tsc --watch --preserveWatchOutput",
     "type-check": "tsc --noEmit"
   },

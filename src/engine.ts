@@ -36,6 +36,13 @@ import {
   openAndWatch,
   closeVolume,
 } from './runtime.js';
+import {
+  assertTimelineWritesAllowed as assertTimelineWritesAllowedForSecret,
+  clearTimelineCursor,
+  getTimelineCursor,
+  replayThroughOptions,
+  timelineGotoAtEvent,
+} from './timelineCursor.js';
 
 export interface VolumeView {
   readonly files: ReadonlyArray<FileMetadata>;
@@ -97,7 +104,6 @@ function reorderKeys(items: readonly string[], keys: readonly string[]): string[
 export class NearbytesEngine {
   private readonly listeners = new Set<EngineListener>();
   private activeHub: string | null = null;
-  private timelineCursorHash: string | null = null;
 
   private constructor(private readonly rt: EngineRuntime) {}
 
@@ -157,20 +163,21 @@ export class NearbytesEngine {
     const kp = await this.rt.skeleton.crypto.deriveKeys(createSecret(secret));
     return bytesToHex(kp.publicKey);
   }
+  private activeSecret(): string | null {
+    return this.hubSecret(this.activeHub);
+  }
   private assertTimelineWritesAllowed(): void {
-    if (this.timelineCursorHash !== null) {
-      throw new Error('Timeline is not at live head — return to live before changing files');
-    }
+    const secret = this.activeSecret();
+    if (secret !== null) assertTimelineWritesAllowedForSecret(this.rt.timelineCursors, secret);
   }
   private async viewOf(secret: string): Promise<VolumeView> {
-    const opts =
-      this.timelineCursorHash !== null
-        ? { throughEventHash: this.timelineCursorHash }
-        : undefined;
-    const replay = await this.rt.fileService.getReplayContext(secret, opts);
+    const replay = await this.rt.fileService.getReplayContext(
+      secret,
+      replayThroughOptions(this.rt.timelineCursors, secret),
+    );
     const files = [...replay.fs.files.values()].sort((a, b) => a.path.localeCompare(b.path));
     const directories = [...replay.fs.directories.values()].sort((a, b) => a.path.localeCompare(b.path));
-    return { files, directories, cursorHash: this.timelineCursorHash };
+    return { files, directories, cursorHash: getTimelineCursor(this.rt.timelineCursors, secret) };
   }
   private async chatOf(secret: string): Promise<ChatTimelineItem[]> {
     // Warm, persisted projection — no full channel reload (chat-v1 §5).
@@ -300,8 +307,8 @@ export class NearbytesEngine {
     this.config = { ...this.config, volumes: this.config.volumes.filter((v) => v.label !== label) };
     if (secret !== null) await closeVolume(this.rt, secret);
     if (this.activeHub === label) {
+      if (secret !== null) clearTimelineCursor(this.rt.timelineCursors, secret);
       this.activeHub = null;
-      this.timelineCursorHash = null;
       void this.writeUiState({ activeHub: null });
     }
     await writeConfig(this.config);
@@ -309,7 +316,8 @@ export class NearbytesEngine {
   async hubUse(label: string): Promise<VolumeView> {
     const secret = this.hubSecret(label);
     if (secret === null) throw new Error(`Unknown hub ${label}`);
-    this.timelineCursorHash = null;
+    const prevSecret = this.activeSecret();
+    if (prevSecret !== null) clearTimelineCursor(this.rt.timelineCursors, prevSecret);
     this.activeHub = label;
     void this.writeUiState({ activeHub: label });
     await openAndWatch(this.rt, secret);
@@ -367,22 +375,19 @@ export class NearbytesEngine {
 
   // ── timeline cursor (read-only historical volume view) ───────────────────
   timelineCursor(): string | null {
-    return this.timelineCursorHash;
+    const secret = this.activeSecret();
+    return secret === null ? null : getTimelineCursor(this.rt.timelineCursors, secret);
   }
   async timelineGoto(eventHash: string): Promise<VolumeView> {
     const secret = this.requireHub();
-    const replay = await this.rt.fileService.getReplayContext(secret);
-    const replayIdx = replay.orderedEntries.findIndex((e) => e.eventHash === eventHash);
-    if (replayIdx < 0) throw new Error(`Event not in replay log: ${eventHash}`);
-    const atHead = replayIdx === replay.orderedEntries.length - 1;
-    this.timelineCursorHash = atHead ? null : eventHash;
+    await timelineGotoAtEvent(this.rt.fileService, this.rt.timelineCursors, secret, eventHash);
     const view = await this.viewOf(secret);
     if (this.activeHub !== null) this.emit({ kind: 'volume', hub: this.activeHub, view });
     return view;
   }
   async timelineLive(): Promise<VolumeView> {
-    this.timelineCursorHash = null;
-    const secret = this.hubSecret(this.activeHub);
+    const secret = this.activeSecret();
+    if (secret !== null) clearTimelineCursor(this.rt.timelineCursors, secret);
     const view = secret === null ? { files: [], directories: [], cursorHash: null } : await this.viewOf(secret);
     if (this.activeHub !== null) this.emit({ kind: 'volume', hub: this.activeHub, view });
     return view;
@@ -408,11 +413,10 @@ export class NearbytesEngine {
   }
   async fileBytes(name: string): Promise<Buffer> {
     const secret = this.requireHub();
-    const opts =
-      this.timelineCursorHash !== null
-        ? { throughEventHash: this.timelineCursorHash }
-        : undefined;
-    const replay = await this.rt.fileService.getReplayContext(secret, opts);
+    const replay = await this.rt.fileService.getReplayContext(
+      secret,
+      replayThroughOptions(this.rt.timelineCursors, secret),
+    );
     return this.rt.fileService.readFileAtReplay(secret, name, replay);
   }
   async fileGet(name: string, outputPath: string): Promise<void> {

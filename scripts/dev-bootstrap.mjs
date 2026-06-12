@@ -17,6 +17,9 @@ function run(cmd, args) {
 
 const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
 
+console.log('[dev] link local nearbytes deps');
+run('node', ['scripts/link-local-deps.mjs']);
+
 console.log('[dev] yarn install');
 run('yarn', ['install']);
 
